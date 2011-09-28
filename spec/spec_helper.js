@@ -3,7 +3,6 @@
 beforeEach(function () {
   this.addMatchers({
     toBeNan: function () {
-      console.log(this.actual);
       return isNaN(this.actual);
     }
   });

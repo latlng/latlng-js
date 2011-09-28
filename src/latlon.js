@@ -1,5 +1,6 @@
 /*jslint vars: true, white: true */
 /*global Geo */
+
 /*
  *  Latitude/longitude spherical geodesy formulae & scripts
  *    (c) Chris Veness 2002-2010
@@ -30,19 +31,20 @@
  * @param {Number=} rad radius of earth if different value is required
  *                             from standard 6,371km.
 */
-function LatLon(lat, lon, rad) {
-  if (typeof (rad) === 'undefined') {
-    rad = 6371;  // earth's mean radius in km
-  }
+function LatLon(lat, lon) {
   // only accept numbers or valid numeric strings
   this.lat = typeof (lat) === 'number' ? lat :
       typeof (lat) === 'string' && lat.trim() !== '' ? +lat : NaN;
+  this.phi = lat; // latitude: north-south
   this.lon = typeof (lon) === 'number' ? lon :
       typeof (lon) === 'string' && lon.trim() !== '' ? +lon : NaN;
-  this.radius = typeof (rad) === 'number' ? rad :
-      typeof (rad) === 'string' && rad.trim() !== '' ? +rad : NaN;
+  this.lambda = lon; //longitude: east-west
 }
 
+/*
+  this.radius = typeof (rad) === 'number' ? rad :
+      typeof (rad) === 'string' && rad.trim() !== '' ? +rad : NaN;
+*/
 
 /**
  * Returns the distance from this point to the supplied point, in km
@@ -57,6 +59,7 @@ function LatLon(lat, lon, rad) {
  * @return {Number} Distance in km between this point and destination point.
 
 */
+
 LatLon.prototype.distanceTo = function (point, precision) {
   // default 4 sig figs reflects typical 0.3% accuracy of spherical model
   if (typeof precision === 'undefined') {
