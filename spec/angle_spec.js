@@ -4,8 +4,26 @@
 describe("Angle", function () {
   var Angle = Geo.Angle;
 
+  describe("round", function () {
+    it("should round the value to the number of decimal places requested",
+      function () {
+        expect(Angle.round(12.3456, 0)).toEqual(12);
+        expect(Angle.round(12.3456, 1)).toEqual(12.3);
+        expect(Angle.round(12.3456, 3)).toEqual(12.346);
+      });
+  });
+
+  describe("roundTo", function () {
+    it("should round the value to the number of decimal places requested",
+      function () {
+        expect(Angle.roundTo(12.3456, 1)).toEqual(12);
+        expect(Angle.roundTo(12.3456, 0.1)).toEqual(12.3);
+        expect(Angle.roundTo(12.3456, 0.001)).toEqual(12.346);
+      });
+  });
+
   describe("parseDMS", function () {
-    it("returns the number it(is passed", function () {
+    it("returns the number it is passed", function () {
       expect(Angle.parseDMS(3.5)).toEqual(3.5);
     });
     it("should parse deg-min-sec suffixed with N/S/E/W", function () {
@@ -46,168 +64,210 @@ describe("Angle", function () {
     });
   });
 
-  describe("toDMS", function () {
-    it("should format a number in degrees, minutes and seconds", function () {
-      expect(Angle.toDMS(51.477811111111116)
-        ).toEqual("051\u00b028\u203240\u2033");
-      expect(Angle.toDMS(51.477811111111116, 'dms')
-        ).toEqual("051\u00b028\u203240\u2033");
-      expect(Angle.toDMS(51.477811111111116, 'dms', 2)
-        ).toEqual("051\u00b028\u203240.12\u2033");
-    });
-    it("should format a number in degrees and minutes", function () {
-      expect(Angle.toDMS(51.477811111111116, 'dm')
-        ).toEqual("051\u00b028.67\u2032");
-      expect(Angle.toDMS(51.477811111111116, 'dm', 0)
-        ).toEqual("051\u00b029\u2032");
-      expect(Angle.toDMS(51.477811111111116, 'dm', 2)
-        ).toEqual("051\u00b028.67\u2032");
-    });
-    it("should format a number in degrees", function () {
-      expect(Angle.toDMS(51.477811111111116, 'd')).toEqual("051.4778\u00b0");
-      expect(Angle.toDMS(51.477811111111116, 'd', 0)).toEqual("051\u00b0");
-      expect(Angle.toDMS(51.477811111111116, 'd', 4)).toEqual("051.4778\u00b0");
-    });
-  });
-
-  describe("toLat", function () {
-    it("should format a number in degrees, minutes and seconds", function () {
-      expect(Angle.toLat(51.477811111111116)
-        ).toEqual("51\u00b028\u203240\u2033N");
-      expect(Angle.toLat(51.477811111111116, 'dms')
-        ).toEqual("51\u00b028\u203240\u2033N");
-      expect(Angle.toLat(51.477811111111116, 'dms', 2)
-        ).toEqual("51\u00b028\u203240.12\u2033N");
-      expect(Angle.toLat(-51.477811111111116)
-        ).toEqual("51\u00b028\u203240\u2033S");
-      expect(Angle.toLat(-51.477811111111116, 'dms')
-        ).toEqual("51\u00b028\u203240\u2033S");
-      expect(Angle.toLat(-51.477811111111116, 'dms', 2)
-        ).toEqual("51\u00b028\u203240.12\u2033S");
-    });
-    it("should format a number in degrees and minutes", function () {
-      expect(Angle.toLat(51.477811111111116, 'dm')
-        ).toEqual("51\u00b028.67\u2032N");
-      expect(Angle.toLat(51.477811111111116, 'dm', 0)
-        ).toEqual("51\u00b029\u2032N");
-      expect(Angle.toLat(51.477811111111116, 'dm', 2)
-        ).toEqual("51\u00b028.67\u2032N");
-      expect(Angle.toLat(-51.477811111111116, 'dm')
-        ).toEqual("51\u00b028.67\u2032S");
-      expect(Angle.toLat(-51.477811111111116, 'dm', 0)
-        ).toEqual("51\u00b029\u2032S");
-      expect(Angle.toLat(-51.477811111111116, 'dm', 2)
-        ).toEqual("51\u00b028.67\u2032S");
-    });
-    it("should format a number in degrees", function () {
-      expect(Angle.toLat(51.477811111111116, 'd')).toEqual("51.4778\u00b0N");
-      expect(Angle.toLat(51.477811111111116, 'd', 0)).toEqual("51\u00b0N");
-      expect(Angle.toLat(51.477811111111116, 'd', 4)).toEqual("51.4778\u00b0N");
-      expect(Angle.toLat(-51.477811111111116, 'd')).toEqual("51.4778\u00b0S");
-      expect(Angle.toLat(-51.477811111111116, 'd', 0)).toEqual("51\u00b0S");
-      expect(Angle.toLat(-51.477811111111116, 'd', 4)).toEqual("51.4778\u00b0S");
-    });
-  });
-  describe("toLon", function () {
-    it("should format a number in degrees, minutes and seconds", function () {
-      expect(Angle.toLon(51.477811111111116)
-        ).toEqual("051\u00b028\u203240\u2033E");
-      expect(Angle.toLon(51.477811111111116, 'dms')
-        ).toEqual("051\u00b028\u203240\u2033E");
-      expect(Angle.toLon(51.477811111111116, 'dms', 2)
-        ).toEqual("051\u00b028\u203240.12\u2033E");
-      expect(Angle.toLon(-51.477811111111116)
-        ).toEqual("051\u00b028\u203240\u2033W");
-      expect(Angle.toLon(-51.477811111111116, 'dms')
-        ).toEqual("051\u00b028\u203240\u2033W");
-      expect(Angle.toLon(-51.477811111111116, 'dms', 2)
-        ).toEqual("051\u00b028\u203240.12\u2033W");
-    });
-    it("should format a number in degrees and minutes", function () {
-      expect(Angle.toLon(51.477811111111116, 'dm')
-        ).toEqual("051\u00b028.67\u2032E");
-      expect(Angle.toLon(51.477811111111116, 'dm', 0)
-        ).toEqual("051\u00b029\u2032E");
-      expect(Angle.toLon(51.477811111111116, 'dm', 2)
-        ).toEqual("051\u00b028.67\u2032E");
-      expect(Angle.toLon(-51.477811111111116, 'dm')
-        ).toEqual("051\u00b028.67\u2032W");
-      expect(Angle.toLon(-51.477811111111116, 'dm', 0)
-        ).toEqual("051\u00b029\u2032W");
-      expect(Angle.toLon(-51.477811111111116, 'dm', 2)
-        ).toEqual("051\u00b028.67\u2032W");
-    });
-    it("should format a number in degrees", function () {
-      expect(Angle.toLon(51.477811111111116, 'd')).toEqual("051.4778\u00b0E");
-      expect(Angle.toLon(51.477811111111116, 'd', 0)).toEqual("051\u00b0E");
-      expect(Angle.toLon(51.477811111111116, 'd', 4)).toEqual("051.4778\u00b0E");
-      expect(Angle.toLon(-51.477811111111116, 'd')).toEqual("051.4778\u00b0W");
-      expect(Angle.toLon(-51.477811111111116, 'd', 0)).toEqual("051\u00b0W");
-      expect(Angle.toLon(-51.477811111111116, 'd', 4)).toEqual("051.4778\u00b0W");
-    });
-  });
-  describe("toBrng", function () {
-    it("should format a number in degrees, minutes and seconds", function () {
-      expect(Angle.toBrng(51.477811111111116)
-        ).toEqual("051\u00b028\u203240\u2033");
-      expect(Angle.toBrng(51.477811111111116, 'dms')
-        ).toEqual("051\u00b028\u203240\u2033");
-      expect(Angle.toBrng(51.477811111111116, 'dms', 2)
-        ).toEqual("051\u00b028\u203240.12\u2033");
-    });
-    it("should format a number in degrees and minutes", function () {
-      expect(Angle.toBrng(51.477811111111116, 'dm')
-        ).toEqual("051\u00b028.67\u2032");
-      expect(Angle.toBrng(51.477811111111116, 'dm', 0)
-        ).toEqual("051\u00b029\u2032");
-      expect(Angle.toBrng(51.477811111111116, 'dm', 2)
-        ).toEqual("051\u00b028.67\u2032");
-    });
-    it("should format a number in degrees", function () {
-      expect(Angle.toBrng(51.477811111111116, 'd')).toEqual("051.4778\u00b0");
-      expect(Angle.toBrng(51.477811111111116, 'd', 0)).toEqual("051\u00b0");
-      expect(Angle.toBrng(51.477811111111116, 'd', 4)).toEqual("051.4778\u00b0");
-    });
-    it("should normalize values to 0..360 degrees", function () {
-      expect(Angle.toBrng(-450)).toEqual("270\u00b000\u203200\u2033");
-      expect(Angle.toBrng(-360)).toEqual("000\u00b000\u203200\u2033");
-      expect(Angle.toBrng(-270)).toEqual("090\u00b000\u203200\u2033");
-      expect(Angle.toBrng(-180)).toEqual("180\u00b000\u203200\u2033");
-      expect(Angle.toBrng(-90)).toEqual("270\u00b000\u203200\u2033");
-      expect(Angle.toBrng(0)).toEqual("000\u00b000\u203200\u2033");
-      expect(Angle.toBrng(90)).toEqual("090\u00b000\u203200\u2033");
-      expect(Angle.toBrng(180)).toEqual("180\u00b000\u203200\u2033");
-      expect(Angle.toBrng(270)).toEqual("270\u00b000\u203200\u2033");
-      expect(Angle.toBrng(360)).toEqual("000\u00b000\u203200\u2033");
-      expect(Angle.toBrng(450)).toEqual("090\u00b000\u203200\u2033");
-    });
-  });
-
-  describe("Constructor", function () {
-    it("should create a angle with a given radius", function () {
-      var angle = new Angle(10);
-      expect(angle.radians).toEqual(10 * Math.PI / 180);
-    });
-
-    it("should parse deg-min-sec suffixed with N/S/E/W", function () {
-      var deg = "40\u00b044\u203255\u2033",
-        angle = new Angle(deg);
-      expect(angle.radians).toEqual(0.7111974295036337);
-      expect(angle.toString()).toEqual(deg);
-    });
-  });
-
-  describe("methods", function () {
-    var angle;
-
+  describe("instance", function () {
+    var angle, degrees, radians, neg;
     beforeEach(function () {
-      angle = new Angle(10);
+      degrees = 51.477811111111116;
+      angle = new Angle(degrees);
+      neg = new Angle(-degrees);
+    });
+
+    describe("Constructor", function () {
+      it("should create a angle with a given radius", function () {
+        var angle = new Angle(10);
+        expect(angle.radians).toEqual(10 * Math.PI / 180);
+      });
+
+      it("should parse deg-min-sec", function () {
+        var deg = "40\u00b044\u203255\u2033",
+          angle = new Angle(deg);
+        expect(angle.radians).toEqual(0.7111974295036337);
+        expect(angle.toString()).toEqual(deg);
+      });
     });
 
     describe("degrees", function () {
       it("should return the degrees of the angle", function () {
-        expect(angle.degrees()).toEqual(10);
+        expect(angle.degrees()).toEqual(degrees);
       });
+    });
+
+    describe("toDMS", function () {
+      it("should format a number in degrees, minutes and seconds", function () {
+        expect(angle.toDMS()).toEqual("51\u00b028\u203240\u2033");
+        expect(angle.toDMS('dms')).toEqual("51\u00b028\u203240\u2033");
+        expect(angle.toDMS('dms', 2)).toEqual("51\u00b028\u203240.12\u2033");
+      });
+      it("should format a number in degrees and minutes", function () {
+        expect(angle.toDMS('dm')).toEqual("51\u00b028.67\u2032");
+        expect(angle.toDMS('dm', 0)).toEqual("51\u00b029\u2032");
+        expect(angle.toDMS('dm', 2)).toEqual("51\u00b028.67\u2032");
+      });
+      it("should format a number in degrees", function () {
+        expect(angle.toDMS('d')).toEqual("51.4778\u00b0");
+        expect(angle.toDMS('d', 0)).toEqual("51\u00b0");
+        expect(angle.toDMS('d', 4)).toEqual("51.4778\u00b0");
+      });
+    });
+
+    describe("toLat", function () {
+      it("should format a number in degrees, minutes, seconds", function () {
+        expect(angle.toLat()).toEqual("51\u00b028\u203240\u2033N");
+        expect(angle.toLat('dms')).toEqual("51\u00b028\u203240\u2033N");
+        expect(angle.toLat('dms', 2)).toEqual("51\u00b028\u203240.12\u2033N");
+        expect(neg.toLat()).toEqual("51\u00b028\u203240\u2033S");
+        expect(neg.toLat('dms')).toEqual("51\u00b028\u203240\u2033S");
+        expect(neg.toLat('dms', 2)).toEqual("51\u00b028\u203240.12\u2033S");
+      });
+      it("should format a number in degrees and minutes", function () {
+        expect(angle.toLat('dm')).toEqual("51\u00b028.67\u2032N");
+        expect(angle.toLat('dm', 0)).toEqual("51\u00b029\u2032N");
+        expect(angle.toLat('dm', 2)).toEqual("51\u00b028.67\u2032N");
+        expect(neg.toLat('dm')).toEqual("51\u00b028.67\u2032S");
+        expect(neg.toLat('dm', 0)).toEqual("51\u00b029\u2032S");
+        expect(neg.toLat('dm', 2)).toEqual("51\u00b028.67\u2032S");
+      });
+      it("should format a number in degrees", function () {
+        expect(angle.toLat('d')).toEqual("51.4778\u00b0N");
+        expect(angle.toLat('d', 0)).toEqual("51\u00b0N");
+        expect(angle.toLat('d', 4)).toEqual("51.4778\u00b0N");
+        expect(neg.toLat('d')).toEqual("51.4778\u00b0S");
+        expect(neg.toLat('d', 0)).toEqual("51\u00b0S");
+        expect(neg.toLat('d', 4)).toEqual("51.4778\u00b0S");
+      });
+    });
+    describe("toLon", function () {
+      it("should format a number in degrees, minutes, seconds", function () {
+        expect(angle.toLon()).toEqual("51\u00b028\u203240\u2033E");
+        expect(angle.toLon('dms')).toEqual("51\u00b028\u203240\u2033E");
+        expect(angle.toLon('dms', 2)).toEqual("51\u00b028\u203240.12\u2033E");
+        expect(neg.toLon()).toEqual("51\u00b028\u203240\u2033W");
+        expect(neg.toLon('dms')).toEqual("51\u00b028\u203240\u2033W");
+        expect(neg.toLon('dms', 2)).toEqual("51\u00b028\u203240.12\u2033W");
+      });
+      it("should format a number in degrees and minutes", function () {
+        expect(angle.toLon('dm')).toEqual("51\u00b028.67\u2032E");
+        expect(angle.toLon('dm', 0)).toEqual("51\u00b029\u2032E");
+        expect(angle.toLon('dm', 2)).toEqual("51\u00b028.67\u2032E");
+        expect(neg.toLon('dm')).toEqual("51\u00b028.67\u2032W");
+        expect(neg.toLon('dm', 0)).toEqual("51\u00b029\u2032W");
+        expect(neg.toLon('dm', 2)).toEqual("51\u00b028.67\u2032W");
+      });
+      it("should format a number in degrees", function () {
+        expect(angle.toLon('d')).toEqual("51.4778\u00b0E");
+        expect(angle.toLon('d', 0)).toEqual("51\u00b0E");
+        expect(angle.toLon('d', 4)).toEqual("51.4778\u00b0E");
+        expect(neg.toLon('d')).toEqual("51.4778\u00b0W");
+        expect(neg.toLon('d', 0)).toEqual("51\u00b0W");
+        expect(neg.toLon('d', 4)).toEqual("51.4778\u00b0W");
+      });
+    });
+    describe("toBrng", function () {
+      it("should format a number in degrees, minutes, seconds", function () {
+        expect(angle.toBrng()).toEqual("51\u00b028\u203240\u2033");
+        expect(angle.toBrng('dms')).toEqual("51\u00b028\u203240\u2033");
+        expect(angle.toBrng('dms', 2)).toEqual("51\u00b028\u203240.12\u2033");
+      });
+      it("should format a number in degrees and minutes", function () {
+        expect(angle.toBrng('dm')).toEqual("51\u00b028.67\u2032");
+        expect(angle.toBrng('dm', 0)).toEqual("51\u00b029\u2032");
+        expect(angle.toBrng('dm', 2)).toEqual("51\u00b028.67\u2032");
+      });
+      it("should format a number in degrees", function () {
+        expect(angle.toBrng('d')).toEqual("51.4778\u00b0");
+        expect(angle.toBrng('d', 0)).toEqual("51\u00b0");
+        expect(angle.toBrng('d', 4)).toEqual("51.4778\u00b0");
+      });
+    });
+
+  });
+
+  describe("toLat", function () {
+    it("should normalize values to -90..90 degrees", function () {
+      var i, latitude, record, records = [
+        {deg: -450, str: "90\u00b0S"},
+        {deg: -360, str: "0\u00b0N"},
+        {deg: -330, str: "30\u00b0N"},
+        {deg: -300, str: "60\u00b0N"},
+        {deg: -270, str: "90\u00b0N"},
+        {deg: -240, str: "60\u00b0N"},
+        {deg: -210, str: "30\u00b0N"},
+        {deg: -180, str: "0\u00b0N"},
+        {deg: -150, str: "30\u00b0S"},
+        {deg: -120, str: "60\u00b0S"},
+        {deg: -90, str: "90\u00b0S"},
+        {deg: -60, str: "60\u00b0S"},
+        {deg: -30, str: "30\u00b0S"},
+        {deg: 0, str: "0\u00b0N"},
+        {deg: 30, str: "30\u00b0N"},
+        {deg: 60, str: "60\u00b0N"},
+        {deg: 90, str: "90\u00b0N"},
+        {deg: 120, str: "60\u00b0N"},
+        {deg: 150, str: "30\u00b0N"},
+        {deg: 180, str: "0\u00b0N"},
+        {deg: 210, str: "30\u00b0S"},
+        {deg: 240, str: "60\u00b0S"},
+        {deg: 270, str: "90\u00b0S"},
+        {deg: 300, str: "60\u00b0S"},
+        {deg: 330, str: "30\u00b0S"},
+        {deg: 360, str: "0\u00b0N"},
+        {deg: 359.999999999, str: "0\u00b0N"},
+        {deg: 450, str: "90\u00b0N"}
+      ];
+      for (i = 0; i < records.length; i += 1) {
+        record = records[i];
+        latitude = Angle.toLat(record.deg, 'd', 0);
+        expect(latitude).toEqual(record.str);
+      }
+    });
+    it("should round -0.0000000001 to 0\u2032N", function () {
+      var i, latitude, record, records = [
+        {str: "0.0000\u00b0N", style: 'd'},
+        {str: "0\u00b00.00\u2032N", style: 'dm'},
+        {str: "0\u00b00\u20320\u2033N", style: 'dms'}
+      ];
+      for (i = 0; i < records.length; i += 1) {
+        record = records[i];
+        latitude = Angle.toLat(0.00000001, record.style);
+        expect(latitude).toEqual(record.str);
+        latitude = Angle.toLat(-0.00000001, record.style);
+        expect(latitude).toEqual(record.str);
+      }
+    });
+  });
+
+  describe("toBrng", function () {
+    it("should normalize values to 0..360 degrees", function () {
+      var i, bearing, record, records = [
+        {deg: -450, str: "270\u00b00\u20320\u2033"},
+        {deg: -360, str: "0\u00b00\u20320\u2033"},
+        {deg: -270, str: "90\u00b00\u20320\u2033"},
+        {deg: -180, str: "180\u00b00\u20320\u2033"},
+        {deg: -90, str: "270\u00b00\u20320\u2033"},
+        {deg: 0, str: "0\u00b00\u20320\u2033"},
+        {deg: 90, str: "90\u00b00\u20320\u2033"},
+        {deg: 180, str: "180\u00b00\u20320\u2033"},
+        {deg: 270, str: "270\u00b00\u20320\u2033"},
+        {deg: 360, str: "0\u00b00\u20320\u2033"},
+        {deg: 450, str: "90\u00b00\u20320\u2033"}
+      ];
+      for (i = 0; i < records.length; i += 1) {
+        record = records[i];
+        bearing = Angle.toBrng(record.deg);
+        expect(bearing).toEqual(record.str);
+      }
+    });
+    it("should round 360 to 0", function () {
+      var i, bearing, record, records = [
+        {deg: 359.999999999, str: "0.0000\u00b0", style: 'd'},
+        {deg: 359.999999999, str: "0\u00b00.00\u2032", style: 'dm'},
+        {deg: 359.999999999, str: "0\u00b00\u20320\u2033", style: 'dms'}
+      ];
+      for (i = 0; i < records.length; i += 1) {
+        record = records[i];
+        bearing = Angle.toBrng(record.deg, record.style);
+        expect(bearing).toEqual(record.str);
+      }
     });
   });
 
