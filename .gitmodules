@@ -1,0 +1,12 @@
+[submodule "lib/ADsafe"]
+	path = lib/ADsafe
+	url = https://github.com/douglascrockford/ADsafe.git
+[submodule "lib/JSLint"]
+	path = lib/JSLint
+	url = https://github.com/douglascrockford/JSLint.git
+[submodule "lib/JSON-js"]
+	path = lib/JSON-js
+	url = https://github.com/douglascrockford/JSON-js.git
+[submodule "lib/jasmine"]
+	path = lib/jasmine
+	url = https://github.com/pivotal/jasmine.git
