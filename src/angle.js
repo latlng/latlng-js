@@ -1,5 +1,7 @@
 /*jslint vars: true, white: true */
-/*global Geo */
+
+var Geo;
+if (Geo === undefined) { Geo = {}; }
 
 (function () {
   // dms format functions.

@@ -2,7 +2,7 @@
 /*global describe, it, beforeEach, expect, spyOn, Geo, LatLon */
 
 describe("Sphere", function () {
-  var Sphere = Geo.Sphere, sphere;
+  var Sphere = Geo.Sphere, LatLon = Geo.LatLon, sphere;
 
   beforeEach(function () {
     sphere = new Sphere(10);
