@@ -123,7 +123,7 @@
     }
   }
 
-  function toLat(deg, style, dp) {
+  function toLat(deg, style, dp) { // normalize degrees to -90º..90º
     deg = Number(deg) % 360;
     if(deg > 180) { deg = 180 - deg; }
     if(deg < -180) { deg = -(180 + deg); }
@@ -132,7 +132,10 @@
     return toDMS(deg, style, dp, formats.lat);
   }
 
-  function toLon(deg, style, dp) {
+  function toLon(deg, style, dp) { // normalize degrees to -180º..180º
+    deg = Number(deg) % 360;
+    if(deg > 180) { deg = deg - 360; }
+    if(deg < -180) { deg = deg + 360; }
     return toDMS(deg, style, dp, formats.lon);
   }
 
@@ -142,17 +145,25 @@
     return toDMS(deg, style, dp);
   }
 
-  function Angle (degrees) {
-    if (typeof degrees === 'string') {
-      degrees = parseDMS(degrees);
-    }
-    if (typeof degrees !== 'number') {
-      degrees = Number(degrees);
-    }
-    if (isNaN(degrees)) {
-      this.radians = 0;
+  function Angle (degrees, radians) {
+    if (radians) { // radians over-rides degrees.
+      if (typeof radians === 'number') {
+        this.radians = radians;
+      } else if (typeof radians === 'string') {
+        this.radians = Number(radians);
+      }
     } else {
-      this.radians = toRadians(degrees);
+      if (typeof degrees === 'string') {
+        degrees = parseDMS(degrees);
+      }
+      if (typeof degrees !== 'number') {
+        degrees = Number(degrees);
+      }
+      if (isNaN(degrees)) {
+        this.radians = NaN;
+      } else {
+        this.radians = toRadians(degrees);
+      }
     }
   }
 

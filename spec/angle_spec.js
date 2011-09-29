@@ -68,14 +68,20 @@ describe("Angle", function () {
     var angle, degrees, radians, neg;
     beforeEach(function () {
       degrees = 51.477811111111116;
+      radians = degrees * Math.PI / 180;
       angle = new Angle(degrees);
       neg = new Angle(-degrees);
     });
 
     describe("Constructor", function () {
-      it("should create a angle with a given radius", function () {
+      it("should create a angle with a given value in degrees", function () {
         var angle = new Angle(10);
         expect(angle.radians).toEqual(10 * Math.PI / 180);
+      });
+
+      it("should create a angle with a given value in radians", function () {
+        var angle = new Angle(null, 3);
+        expect(angle.radians).toEqual(3);
       });
 
       it("should parse deg-min-sec", function () {
@@ -83,6 +89,12 @@ describe("Angle", function () {
           angle = new Angle(deg);
         expect(angle.radians).toEqual(0.7111974295036337);
         expect(angle.toString()).toEqual(deg);
+      });
+    });
+
+    describe("radians", function () {
+      it("should return the degrees of the angle", function () {
+        expect(angle.radians).toEqual(radians);
       });
     });
 
@@ -183,7 +195,7 @@ describe("Angle", function () {
   });
 
   describe("toLat", function () {
-    it("should normalize values to -90..90 degrees", function () {
+    it("should normalize values to -180..180 degrees", function () {
       var i, latitude, record, records = [
         {deg: -450, str: "90\u00b0S"},
         {deg: -360, str: "0\u00b0N"},
@@ -236,6 +248,64 @@ describe("Angle", function () {
     });
   });
 
+  describe("toLon", function () {
+    it("should normalize values to -90..90 degrees", function () {
+      var i, longitude, record, records = [
+        {deg: -450, str: "90\u00b0W"},
+        {deg: -420, str: "60\u00b0W"},
+        {deg: -390, str: "30\u00b0W"},
+        {deg: -360, str: "0\u00b0E"},
+        {deg: -330, str: "30\u00b0E"},
+        {deg: -300, str: "60\u00b0E"},
+        {deg: -270, str: "90\u00b0E"},
+        {deg: -240, str: "120\u00b0E"},
+        {deg: -210, str: "150\u00b0E"},
+        {deg: -180, str: "180\u00b0W"},
+        {deg: -150, str: "150\u00b0W"},
+        {deg: -120, str: "120\u00b0W"},
+        {deg: -90, str: "90\u00b0W"},
+        {deg: -60, str: "60\u00b0W"},
+        {deg: -30, str: "30\u00b0W"},
+        {deg: 0, str: "0\u00b0E"},
+        {deg: 30, str: "30\u00b0E"},
+        {deg: 60, str: "60\u00b0E"},
+        {deg: 90, str: "90\u00b0E"},
+        {deg: 120, str: "120\u00b0E"},
+        {deg: 150, str: "150\u00b0E"},
+        {deg: 180, str: "180\u00b0E"},
+        {deg: 210, str: "150\u00b0W"},
+        {deg: 240, str: "120\u00b0W"},
+        {deg: 270, str: "90\u00b0W"},
+        {deg: 300, str: "60\u00b0W"},
+        {deg: 330, str: "30\u00b0W"},
+        {deg: 359.9999999, str: "0\u00b0E"},
+        {deg: 360, str: "0\u00b0E"},
+        {deg: 390, str: "30\u00b0E"},
+        {deg: 420, str: "60\u00b0E"},
+        {deg: 450, str: "90\u00b0E"}
+      ];
+      for (i = 0; i < records.length; i += 1) {
+        record = records[i];
+        longitude = Angle.toLon(record.deg, 'd', 0);
+        expect(longitude).toEqual(record.str);
+      }
+    });
+    it("should round -0.0000000001 to 0\u2032E", function () {
+      var i, longitude, record, records = [
+        {str: "0.0000\u00b0E", style: 'd'},
+        {str: "0\u00b00.00\u2032E", style: 'dm'},
+        {str: "0\u00b00\u20320\u2033E", style: 'dms'}
+      ];
+      for (i = 0; i < records.length; i += 1) {
+        record = records[i];
+        longitude = Angle.toLon(0.00000001, record.style);
+        expect(longitude).toEqual(record.str);
+        longitude = Angle.toLon(-0.00000001, record.style);
+        expect(longitude).toEqual(record.str);
+      }
+    });
+  });
+
   describe("toBrng", function () {
     it("should normalize values to 0..360 degrees", function () {
       var i, bearing, record, records = [
@@ -243,13 +313,13 @@ describe("Angle", function () {
         {deg: -360, str: "0\u00b00\u20320\u2033"},
         {deg: -270, str: "90\u00b00\u20320\u2033"},
         {deg: -180, str: "180\u00b00\u20320\u2033"},
-        {deg: -90, str: "270\u00b00\u20320\u2033"},
-        {deg: 0, str: "0\u00b00\u20320\u2033"},
-        {deg: 90, str: "90\u00b00\u20320\u2033"},
-        {deg: 180, str: "180\u00b00\u20320\u2033"},
-        {deg: 270, str: "270\u00b00\u20320\u2033"},
-        {deg: 360, str: "0\u00b00\u20320\u2033"},
-        {deg: 450, str: "90\u00b00\u20320\u2033"}
+        {deg:  -90, str: "270\u00b00\u20320\u2033"},
+        {deg:    0, str: "0\u00b00\u20320\u2033"},
+        {deg:   90, str: "90\u00b00\u20320\u2033"},
+        {deg:  180, str: "180\u00b00\u20320\u2033"},
+        {deg:  270, str: "270\u00b00\u20320\u2033"},
+        {deg:  360, str: "0\u00b00\u20320\u2033"},
+        {deg:  450, str: "90\u00b00\u20320\u2033"}
       ];
       for (i = 0; i < records.length; i += 1) {
         record = records[i];
