@@ -3,6 +3,7 @@
 
 (function () {
   var LatLon = Geo.LatLon;
+  var Angle = Geo.Angle;
 
   function Sphere(radius) {
     this.radius = radius || 1;
@@ -18,125 +19,19 @@
     return (4 / 3) * Math.PI * r * r * r;
   };
 
-  Sphere.prototype.distanceBetween = function (a, b) {
-    var r = this.radius;
-    var lat1 = a.lat.toRad(), lon1 = a.lon.toRad();
-    var lat2 = b.lat.toRad(), lon2 = b.lon.toRad();
-    var dLat = lat2 - lat1;
-    var dLon = lon2 - lon1;
-
-    var theta = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(lat1) * Math.cos(lat2) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    var c = 2 * Math.atan2(Math.sqrt(theta), Math.sqrt(1 - theta));
-    var d = r * c;
-    return d;
-  };
-
   /**
-   * Returns the distance from this point to the supplied point, in km
+   * Returns the distance between LatLon points, in the units of radius
    * (using Haversine formula)
    *
-   * from: Haversine formula - R. W. Sinnott, "Virtues of the Haversine",
-   *       Sky and Telescope, vol 68, no 2, 1984
-   *
-   * @param   {LatLon} point Latitude/longitude of destination point.
-   * @param   {Number=} precision of significant digits to use for
-   *                                  returned value.
-   * @return {Number} Distance in km between this point and destination point.
-
+   * @param   {LatLon} a Latitude/longitude of origin point.
+   * @param   {LatLon} a Latitude/longitude of destination point.
+   * @return  {Number} Distance between origin and destination points.
   */
-
-  Sphere.prototype.distanceTo = function (point, precision) {
-    // default 4 sig figs reflects typical 0.3% accuracy of spherical model
-    if (typeof precision === 'undefined') {
-      precision = 4;
-    }
-
-    var R = this.radius;
-    var lat1 = this.lat.toRad(), lon1 = this.lon.toRad();
-    var lat2 = point.lat.toRad(), lon2 = point.lon.toRad();
-    var dLat = lat2 - lat1;
-    var dLon = lon2 - lon1;
-
-    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(lat1) * Math.cos(lat2) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    var d = R * c;
-    return d.toPrecisionFixed(precision);
+  Sphere.prototype.distanceBetween = function (a, b) {
+    return this.radius * a.angleTo(b);
   };
 
 
-  /**
-   * Returns the (initial) bearing from this point to the supplied point, in
-   * degrees
-   *   see http://williams.best.vwh.net/avform.htm#Crs
-   *
-   * @param   {LatLon} point Latitude/longitude of destination point.
-   * @return {Number} Initial bearing in degrees from North.
-
-  */
-  Sphere.prototype.bearingTo = function (point) {
-    var lat1 = this.lat.toRad(), lat2 = point.lat.toRad();
-    var dLon = (point.lon - this.lon).toRad();
-
-    var y = Math.sin(dLon) * Math.cos(lat2);
-    var x = Math.cos(lat1) * Math.sin(lat2) -
-            Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
-    var brng = Math.atan2(y, x);
-
-    return (brng.toDeg() + 360) % 360;
-  };
-
-
-  /**
-   * Returns final bearing arriving at supplied destination point from this
-   * point; the final bearing will differ from the initial bearing by varying
-   * degrees according to distance and latitude
-   *
-   * @param   {LatLon} point Latitude/longitude of destination point.
-   * @return {Number} Final bearing in degrees from North.
-
-  */
-  Sphere.prototype.finalBearingTo = function (point) {
-    // get initial bearing from supplied point back to this point...
-    var lat1 = point.lat.toRad(), lat2 = this.lat.toRad();
-    var dLon = (this.lon - point.lon).toRad();
-
-    var y = Math.sin(dLon) * Math.cos(lat2);
-    var x = Math.cos(lat1) * Math.sin(lat2) -
-            Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
-    var brng = Math.atan2(y, x);
-    // ... & reverse it by adding 180°
-    return (brng.toDeg() + 180) % 360;
-  };
-
-
-  /**
-   * Returns the midpoint between this point and the supplied point.
-   *   see http://mathforum.org/library/drmath/view/51822.html for derivation
-   *
-   * @param   {LatLon} point Latitude/longitude of destination point.
-   * @return {LatLon} Midpoint between this point and the supplied point.
-
-  */
-  Sphere.prototype.midpointTo = function (point) {
-    var lat1 = this.lat.toRad(), lon1 = this.lon.toRad();
-    var lat2 = point.lat.toRad();
-    var dLon = (point.lon - this.lon).toRad();
-
-    var Bx = Math.cos(lat2) * Math.cos(dLon);
-    var By = Math.cos(lat2) * Math.sin(dLon);
-
-    var lat3 = Math.atan2(Math.sin(lat1) + Math.sin(lat2),
-      Math.sqrt((Math.cos(lat1) + Bx) * (Math.cos(lat1) + Bx) + By * By));
-    var lon3 = lon1 + Math.atan2(By, Math.cos(lat1) + Bx);
-    // normalise to -180..+180º
-    lon3 = (lon3 + 3 * Math.PI) % (2 * Math.PI) - Math.PI;
-
-    return new LatLon(lat3.toDeg(), lon3.toDeg());
-  };
 
 
   /**

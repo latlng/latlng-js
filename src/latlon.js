@@ -17,14 +17,13 @@ var Geo;
 if (Geo === undefined) { Geo = {}; }
 
 (function () {
-
-  /* -----------------------------------------------
-  */
-  /*  Note that minimal error checking is performed in this example code!
-  */
-  /* -----------------------------------------------
-  */
-
+  var Angle = Geo.Angle,
+    sin = Math.sin,
+    cos = Math.cos,
+    atan2 = Math.atan2,
+    sqrt = Math.sqrt,
+    PI = Math.PI,
+    PI2 = 2 * PI;
 
   /**
    * Creates a point on the earth's surface at the supplied latitude / longitude
@@ -35,15 +34,24 @@ if (Geo === undefined) { Geo = {}; }
    * @param {Number=} rad radius of earth if different value is required
    *                             from standard 6,371km.
   */
+
   function LatLon(lat, lon) {
     // only accept numbers or valid numeric strings
-    this.lat = typeof (lat) === 'number' ? lat :
-        typeof (lat) === 'string' && lat.trim() !== '' ? +lat : NaN;
-    this.phi = lat; // latitude: north-south
-    this.lon = typeof (lon) === 'number' ? lon :
-        typeof (lon) === 'string' && lon.trim() !== '' ? +lon : NaN;
-    this.lambda = lon; //longitude: east-west
+    if (typeof(lat) === 'number') {
+      this.lat = new Angle(lat);
+    } else if (lat instanceof Angle) {
+      this.lat = lat;
+    }
+    if (typeof(lon) === 'number') {
+      this.lon = new Angle(lon);
+    } else if (lon instanceof Angle) {
+      this.lon = lon;
+    }
   }
+
+  LatLon.fromDegrees = function(lat, lon) {
+    return new LatLon(Angle.fromDegrees(lat), Angle.fromDegrees(lon));
+  };
 
   /*
     this.radius = typeof (rad) === 'number' ? rad :
@@ -113,7 +121,88 @@ if (Geo === undefined) { Geo = {}; }
         Geo.toLon(this.lon, format, dp);
   };
 
-  /* ----------------------------------------------- */
+  /**
+   * Returns the internal angle between the supplied LatLon points
+   * (using Haversine formula)
+   *
+   * from: Haversine formula - R. W. Sinnott, "Virtues of the Haversine",
+   *       Sky and Telescope, vol 68, no 2, 1984
+   *
+   * @param  {LatLon} point Latitude/longitude of destination point.
+   * @return {Angle} angle between this point and destination point.
+  */
+  LatLon.prototype.angleTo = function (b) {
+    var lat = this.lat.r,
+      bLat = b.lat.r,
+      sLat = sin((bLat - lat) / 2),
+      sLon = sin((b.lon.r - this.lon.r) / 2),
+      theta = sLat * sLat + cos(lat) * cos(bLat) * sLon * sLon,
+      radians = 2 * atan2(sqrt(theta), sqrt(1 - theta));
+    return new Angle(radians);
+  };
+
+  /**
+   * Returns the (initial) bearing to the supplied point
+   *   see http://williams.best.vwh.net/avform.htm#Crs
+   *
+   * @param   {LatLon} dest destination point LatLon.
+   * @return {Angle} Initial bearing from North.
+
+  */
+  LatLon.prototype.bearingTo = function (dest) {
+    var lat = this.lat.r, destLat = dest.lat.r,
+      dLon = dest.lon.r - this.lon.r,
+      cosDestLat = cos(destLat),
+      x = cos(lat) * sin(destLat) - sin(lat) * cosDestLat * cos(dLon),
+      y = sin(dLon) * cosDestLat,
+      brng = atan2(y, x) % ( PI2 );
+    if (brng < 0) { brng = brng + PI2; }
+    return new Angle(brng);
+  };
+
+  /**
+   * Returns final bearing upon arriving at the destination
+   * the final bearing will differ from the initial bearing by varying
+   * degrees according to distance and latitude
+   *
+   * @param   {LatLon} dest destination LatLon.
+   * @return {Number} Final bearing from North.
+  */
+  LatLon.prototype.finalBearingTo = function (dest) {
+    var destLat = dest.lat.r, lat = this.lat.r,
+      dLon = this.lon.r - dest.lon.r,
+      y = sin(dLon) * cos(lat),
+      x = cos(destLat) * sin(lat) - sin(destLat) * cos(lat) * cos(dLon),
+      brng = (atan2(y, x) + PI) % 360;
+    return new Angle(brng);
+  };
+
+  /**
+   * Returns the midpoint between this point and the supplied point.
+   * http://mathforum.org/library/drmath/view/51822.html 
+   *
+   * @param   {LatLon} dest destination LatLon.
+   * @return {LatLon} Midpoint between LatLon's
+
+  */
+  LatLon.prototype.midpointBetween = function (dest) {
+    var lat = this.lat.r, lon = this.lon.r, 
+      destLat = dest.lat.r,
+      dLon = dest.lon.r - lon,
+      Bx = cos(destLat) * cos(dLon),
+      By = cos(destLat) * sin(dLon),
+      cLat = cos(lat),
+      y = sin(lat) + sin(destLat),
+      x = sqrt((cLat + Bx) * (cLat + Bx) + By * By),
+      midLat = atan2(y, x),
+      midLon = lon + atan2(By, cLat + Bx);
+      // normalise to -180..+180º
+      midLon = (midLon + 3 * PI) % PI2 - PI;
+
+    return new LatLon(midLat.toDeg(), midLon.toDeg());
+  };
+
+
 
   Geo.LatLon = LatLon;
 

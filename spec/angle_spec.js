@@ -67,34 +67,40 @@ describe("Angle", function () {
   describe("instance", function () {
     var angle, degrees, radians, neg;
     beforeEach(function () {
-      degrees = 51.477811111111116;
+      degrees = 51.4778111111111;
       radians = degrees * Math.PI / 180;
-      angle = new Angle(degrees);
-      neg = new Angle(-degrees);
+      angle = Angle.fromDegrees(degrees);
+      neg = Angle.fromDegrees(-degrees);
     });
 
     describe("Constructor", function () {
       it("should create a angle with a given value in degrees", function () {
-        var angle = new Angle(10);
-        expect(angle.radians).toEqual(10 * Math.PI / 180);
+        var angle = Angle.fromDegrees(10);
+        expect(angle.r).toEqual(10 * Math.PI / 180);
       });
 
       it("should create a angle with a given value in radians", function () {
-        var angle = new Angle(null, 3);
-        expect(angle.radians).toEqual(3);
+        var angle = new Angle(3);
+        expect(angle.r).toEqual(3);
       });
 
       it("should parse deg-min-sec", function () {
         var deg = "40\u00b044\u203255\u2033",
-          angle = new Angle(deg);
-        expect(angle.radians).toEqual(0.7111974295036337);
+          angle = Angle.fromDegrees(deg);
+        expect(angle.r).toEqual(0.7111974295036337);
         expect(angle.toString()).toEqual(deg);
+      });
+    });
+
+    describe("valueOf", function () {
+      it("should return the angle value in radians", function () {
+        expect(angle.valueOf()).toEqual(radians);
       });
     });
 
     describe("radians", function () {
       it("should return the degrees of the angle", function () {
-        expect(angle.radians).toEqual(radians);
+        expect(angle.r).toEqual(radians);
       });
     });
 

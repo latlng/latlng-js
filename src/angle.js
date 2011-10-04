@@ -18,7 +18,7 @@ if (Geo === undefined) { Geo = {}; }
   }
 
   function toDegrees(radians) {
-    return radians * 180 / Math.PI;
+    return Math.round((radians * 180 / Math.PI) * 10e12) / 10e12;
   }
 
   function toRadians(degrees) {
@@ -147,30 +147,40 @@ if (Geo === undefined) { Geo = {}; }
     return toDMS(deg, style, dp);
   }
 
-  function Angle (degrees, radians) {
-    if (radians) { // radians over-rides degrees.
-      if (typeof radians === 'number') {
-        this.radians = radians;
-      } else if (typeof radians === 'string') {
-        this.radians = Number(radians);
-      }
+  function Angle (radians) {
+    if (typeof radians === 'number') {
+      this.r = radians;
+    } else if (typeof radians === 'string') {
+      this.r = Number(radians);
     } else {
-      if (typeof degrees === 'string') {
-        degrees = parseDMS(degrees);
-      }
-      if (typeof degrees !== 'number') {
-        degrees = Number(degrees);
-      }
-      if (isNaN(degrees)) {
-        this.radians = NaN;
-      } else {
-        this.radians = toRadians(degrees);
-      }
+      this.r = NaN;
     }
   }
 
+  Angle.fromDegrees = function (degrees) {
+    if (typeof degrees === 'string') {
+      degrees = parseDMS(degrees);
+    }
+    if (typeof degrees !== 'number') {
+      degrees = Number(degrees);
+    }
+    if (isNaN(degrees)) {
+      return new Angle(NaN);
+    } else {
+      return new Angle(toRadians(degrees));
+    }
+  };
+
+  Angle.prototype.radians = function () {
+    return this.r;
+  };
+
   Angle.prototype.degrees = function () {
-    return toDegrees(this.radians);
+    return toDegrees(this.r);
+  };
+
+  Angle.prototype.valueOf = function () {
+    return this.r;
   };
 
   Angle.prototype.toString = function () {
@@ -192,6 +202,7 @@ if (Geo === undefined) { Geo = {}; }
   Angle.prototype.toBrng = function (style, dp) {
     return toBrng(this.degrees(), style, dp);
   };
+
 
   // make functions available as class methods.
   Angle.round = round;
