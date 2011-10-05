@@ -29,8 +29,8 @@ describe("Sphere", function () {
   describe("distanceBetween", function () {
     it("should calculate the distance between points", function () {
       var a, b, d;
-      a = new LatLon(30, 60);
-      b = new LatLon(60, 30);
+      a = LatLon.fromDegrees(30, 60);
+      b = LatLon.fromDegrees(60, 30);
       d = sphere.distanceBetween(a, b);
       expect(d).toEqual(6.300251316243758);
     });

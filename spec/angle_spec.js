@@ -67,7 +67,7 @@ describe("Angle", function () {
   describe("instance", function () {
     var angle, degrees, radians, neg;
     beforeEach(function () {
-      degrees = 51.4778111111111;
+      degrees = 51.477811111111;
       radians = degrees * Math.PI / 180;
       angle = Angle.fromDegrees(degrees);
       neg = Angle.fromDegrees(-degrees);

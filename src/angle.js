@@ -18,7 +18,7 @@ if (Geo === undefined) { Geo = {}; }
   }
 
   function toDegrees(radians) {
-    return Math.round((radians * 180 / Math.PI) * 10e12) / 10e12;
+    return Math.round((radians * 180 / Math.PI) * 10e11) / 10e11;
   }
 
   function toRadians(degrees) {

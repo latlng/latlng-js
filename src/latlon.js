@@ -19,6 +19,7 @@ if (Geo === undefined) { Geo = {}; }
 (function () {
   var Angle = Geo.Angle,
     sin = Math.sin,
+    asin = Math.asin,
     cos = Math.cos,
     atan2 = Math.atan2,
     sqrt = Math.sqrt,
@@ -160,6 +161,18 @@ if (Geo === undefined) { Geo = {}; }
     return new Angle(brng);
   };
 
+  LatLon.prototype.atBearingAndAngle = function (bearing, angle) {
+    var brng = ( typeof bearing === 'number' ) ? bearing : bearing.r,
+      theta = ( typeof angle === 'number' ) ? angle : angle.r,
+      lat = this.lat.r, lon = this.lon.r,
+      clat = cos(lat), slat = sin(lat), st = sin(theta), ct = cos(theta),
+      lat2 = asin(slat * ct + clat * st * cos(brng)),
+      lon2 = lon + atan2(sin(brng) * st * clat, ct - slat * sin(lat2));
+    // normalise to -180..+180º
+    lon2 = (lon2 + 3 * PI) % (2 * PI) - PI;
+    return new LatLon(lat2, lon2);
+  };
+
   /**
    * Returns final bearing upon arriving at the destination
    * the final bearing will differ from the initial bearing by varying
@@ -179,14 +192,14 @@ if (Geo === undefined) { Geo = {}; }
 
   /**
    * Returns the midpoint between this point and the supplied point.
-   * http://mathforum.org/library/drmath/view/51822.html 
+   * http://mathforum.org/library/drmath/view/51822.html
    *
    * @param   {LatLon} dest destination LatLon.
    * @return {LatLon} Midpoint between LatLon's
 
   */
-  LatLon.prototype.midpointBetween = function (dest) {
-    var lat = this.lat.r, lon = this.lon.r, 
+  LatLon.prototype.midpointTo = function (dest) {
+    var lat = this.lat.r, lon = this.lon.r,
       destLat = dest.lat.r,
       dLon = dest.lon.r - lon,
       Bx = cos(destLat) * cos(dLon),
@@ -196,13 +209,10 @@ if (Geo === undefined) { Geo = {}; }
       x = sqrt((cLat + Bx) * (cLat + Bx) + By * By),
       midLat = atan2(y, x),
       midLon = lon + atan2(By, cLat + Bx);
-      // normalise to -180..+180º
-      midLon = (midLon + 3 * PI) % PI2 - PI;
-
-    return new LatLon(midLat.toDeg(), midLon.toDeg());
+    // normalise to -180..+180º
+    midLon = (midLon + 3 * PI) % PI2 - PI;
+    return new LatLon(midLat, midLon);
   };
-
-
 
   Geo.LatLon = LatLon;
 

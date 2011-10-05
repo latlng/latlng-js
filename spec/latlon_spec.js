@@ -2,11 +2,11 @@
 /*global describe, it, beforeEach, expect, spyOn, Geo, LatLon */
 
 describe("LatLon", function () {
-  var LatLon = Geo.LatLon;
+  var LatLon = Geo.LatLon, Angle = Geo.Angle;
 
   describe("Constructor", function () {
     it("should store arguments as attributes", function () {
-      var ll = new LatLon(30, 60);
+      var ll = LatLon.fromDegrees(30, 60);
       expect(ll.lat.degrees()).toEqual(30);
       expect(ll.lon.degrees()).toEqual(60);
     });
@@ -16,8 +16,8 @@ describe("LatLon", function () {
     var a, b;
 
     beforeEach(function () {
-      a = new LatLon(0, 0);
-      b = new LatLon(45, 90);
+      a = LatLon.fromDegrees(0, 0);
+      b = LatLon.fromDegrees(45, 90);
     });
 
     describe("angleTo", function () {
@@ -32,9 +32,36 @@ describe("LatLon", function () {
       });
     });
 
+    describe("atBearingAndAngle", function () {
+      it("should calculate bearing from a to b", function () {
+        var c = a.atBearingAndAngle(
+          Angle.fromDegrees(45),
+          Angle.fromDegrees(90)
+        );
+        expect(c.lat.degrees()).toEqual(45);
+        expect(c.lon.degrees()).toEqual(90);
+      });
+    });
+
     describe("finalBearingTo", function () {
       it("should calculate final bearing from a to b", function () {
         expect(a.finalBearingTo(b).degrees()).toEqual(90);
+      });
+    });
+
+    describe("midpointBetween", function () {
+      it("should find the midpoint between a and b", function () {
+        var c = a.midpointTo(b);
+        expect(c.lat.degrees()).toEqual(30);
+        expect(c.lon.degrees()).toEqual(35.264389682755);
+        b = LatLon.fromDegrees(0, 90);
+        c = a.midpointTo(b);
+        expect(c.lat.degrees()).toEqual(0);
+        expect(c.lon.degrees()).toEqual(45);
+        b = LatLon.fromDegrees(90, 0);
+        c = a.midpointTo(b);
+        expect(c.lat.degrees()).toEqual(45);
+        expect(c.lon.degrees()).toEqual(0);
       });
     });
 
