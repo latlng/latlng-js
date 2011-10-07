@@ -1,9 +1,19 @@
 /*jslint vars: true, white: true */
-/*global Geo */
+/*global Geo, console */
 
 (function () {
-  var LatLon = Geo.LatLon;
-  var Angle = Geo.Angle;
+  var LatLon = Geo.LatLon,
+    Angle = Geo.Angle,
+    abs = Math.abs,
+    tan = Math.tan,
+    atan2 = Math.atan2,
+    asin = Math.asin,
+    sin = Math.sin,
+    cos = Math.cos,
+    sqrt = Math.sqrt,
+    log = Math.log,
+    PI = Math.PI,
+    PI2 = 2 * PI;
 
   function Sphere(radius) {
     this.radius = radius || 1;
@@ -19,6 +29,18 @@
     return (4 / 3) * Math.PI * r * r * r;
   };
 
+  Sphere.prototype.angleOf = function (distance) {
+    return new Angle(distance / this.radius);
+  };
+
+  Sphere.prototype.distanceOf = function (angle) {
+    if (typeof angle === 'number') {
+      return angle * this.radius;
+    } else {
+      return angle.r * this.radius;
+    }
+  };
+
   /**
    * Returns the distance between LatLon points, in the units of radius
    * (using Haversine formula)
@@ -28,11 +50,8 @@
    * @return  {Number} Distance between origin and destination points.
   */
   Sphere.prototype.distanceBetween = function (a, b) {
-    return this.radius * a.angleTo(b);
+    return this.distanceOf(a.angleTo(b));
   };
-
-
-
 
   /**
    * Returns the destination point from this point having travelled the given
@@ -41,113 +60,16 @@
    *
    *   see http://williams.best.vwh.net/avform.htm#LL
    *
-   * @param   {Number} brng Initial bearing in degrees.
+   * @param   {LatLon} a Initial location
+   * @param   {Number} brng Initial bearing
    * @param   {Number} dist Distance in km.
    * @return {LatLon} Destination point.
 
   */
-  Sphere.prototype.destinationPoint = function (brng, dist) {
-    dist = typeof (dist) === 'number' ? dist :
-        typeof (dist) === 'string' && dist.trim() !== '' ? +dist : NaN;
-    dist = dist / this.radius;  // convert dist to angular distance in radians
-    brng = brng.toRad();  //
-    var lat1 = this.lat.toRad(), lon1 = this.lon.toRad();
-
-    var lat2 = Math.asin(Math.sin(lat1) * Math.cos(dist) +
-                          Math.cos(lat1) * Math.sin(dist) * Math.cos(brng));
-    var lon2 = lon1 +
-        Math.atan2(Math.sin(brng) * Math.sin(dist) * Math.cos(lat1),
-                  Math.cos(dist) - Math.sin(lat1) * Math.sin(lat2));
-    // normalise to -180..+180º
-    lon2 = (lon2 + 3 * Math.PI) % (2 * Math.PI) - Math.PI;
-
-    return new LatLon(lat2.toDeg(), lon2.toDeg());
-  };
-
-
-  /**
-   * Returns the point of intersection of two paths defined by point and bearing
-   *
-   *   see http://williams.best.vwh.net/avform.htm#Intersection
-   *
-   * @param   {LatLon} p1 First point.
-   * @param   {Number} brng1 Initial bearing from first point.
-   * @param   {LatLon} p2 Second point.
-   * @param   {Number} brng2 Initial bearing from second point.
-   * @return {LatLon} Destination point
-   *                  (null if no unique intersection defined).
-
-  */
-  Sphere.intersection = function (p1, brng1, p2, brng2) {
-    brng1 = typeof brng1 === 'number' ? brng1 :
-        typeof brng1 === 'string' && brng1.trim() !== '' ? +brng1 : NaN;
-    brng2 = typeof brng2 === 'number' ? brng2 :
-        typeof brng2 === 'string' && brng2.trim() !== '' ? +brng2 : NaN;
-    var lat1 = p1.lat.toRad(), lon1 = p1.lon.toRad();
-    var lat2 = p2.lat.toRad(), lon2 = p2.lon.toRad();
-    var brng13 = brng1.toRad(), brng23 = brng2.toRad();
-    var dLat = lat2 - lat1, dLon = lon2 - lon1;
-
-    var dist12 = 2 * Math.asin(
-      Math.sqrt(Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1) * Math.cos(lat2) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2)));
-    if (dist12 === 0) {
-      return null;
-    }
-
-    // initial/final bearings between points
-    var brngA = Math.acos((Math.sin(lat2) - Math.sin(lat1) * Math.cos(dist12)) /
-      (Math.sin(dist12) * Math.cos(lat1)));
-    if (isNaN(brngA)) {
-      brngA = 0;  // protect against rounding
-    }
-    var brngB = Math.acos((Math.sin(lat1) - Math.sin(lat2) * Math.cos(dist12)) /
-      (Math.sin(dist12) * Math.cos(lat2)));
-
-    var brng12, brng21;
-    if (Math.sin(lon2 - lon1) > 0) {
-      brng12 = brngA;
-      brng21 = 2 * Math.PI - brngB;
-    } else {
-      brng12 = 2 * Math.PI - brngA;
-      brng21 = brngB;
-    }
-
-    // angle 2-1-3
-    var alpha1 = (brng13 - brng12 + Math.PI) % (2 * Math.PI) - Math.PI;
-    // angle 1-2-3
-    var alpha2 = (brng21 - brng23 + Math.PI) % (2 * Math.PI) - Math.PI;
-
-    // infinite intersections
-    if (Math.sin(alpha1) === 0 && Math.sin(alpha2) === 0) {
-      return null;
-    }
-    // ambiguous intersection
-    if (Math.sin(alpha1) * Math.sin(alpha2) < 0) {
-      return null;
-    }
-
-    //alpha1 = Math.abs(alpha1);
-    //alpha2 = Math.abs(alpha2);
-    // ... Ed Williams takes abs of alpha1/alpha2, but that seems to break
-    // calculation?
-
-    var alpha3 = Math.acos(-Math.cos(alpha1) * Math.cos(alpha2) +
-            Math.sin(alpha1) * Math.sin(alpha2) * Math.cos(dist12));
-    var dist13 = Math.atan2(
-            Math.sin(dist12) * Math.sin(alpha1) * Math.sin(alpha2),
-            Math.cos(alpha2) + Math.cos(alpha1) * Math.cos(alpha3));
-    var lat3 = Math.asin(Math.sin(lat1) * Math.cos(dist13) +
-            Math.cos(lat1) * Math.sin(dist13) * Math.cos(brng13));
-    var dLon13 = Math.atan2(
-            Math.sin(brng13) * Math.sin(dist13) * Math.cos(lat1),
-             Math.cos(dist13) - Math.sin(lat1) * Math.sin(lat3));
-    var lon3 = lon1 + dLon13;
-    // normalise to -180..+180º
-    lon3 = (lon3 + 3 * Math.PI) % (2 * Math.PI) - Math.PI;
-
-    return new LatLon(lat3.toDeg(), lon3.toDeg());
+  Sphere.prototype.destinationPoint = function (a, bearing, distance) {
+    var angle = this.angleOf(distance);
+    console.log(a, bearing, distance, angle);
+    return a.atBearingAndAngle(bearing, angle);
   };
 
 
@@ -159,25 +81,21 @@
    *
    *   see http://williams.best.vwh.net/avform.htm#Rhumb
    *
-   * @param   {LatLon} point Latitude/longitude of destination point.
+   * @param  {LatLon} a Latitude/longitude of origin point.
+   * @param  {LatLon} b Latitude/longitude of destination point.
    * @return {Number} Distance in km between this point and destination point.
   */
-  Sphere.prototype.rhumbDistanceTo = function (point) {
+  Sphere.prototype.rhumbDistanceBetween = function (a, b) {
     var R = this.radius;
-    var lat1 = this.lat.toRad(), lat2 = point.lat.toRad();
-    var dLat = (point.lat - this.lat).toRad();
-    var dLon = Math.abs(point.lon - this.lon).toRad();
-
-    var dPhi = Math.log(
-            Math.tan(lat2 / 2 + Math.PI / 4) /
-            Math.tan(lat1 / 2 + Math.PI / 4));
+    var lat1 = a.lat.r, lat2 = b.lat.r;
+    var dLat = b.lat.r - a.lat.r;
+    var dLon = abs(b.lon.r - a.lon.r);
+    var dPhi = log( tan(lat2 / 2 + PI / 4) / tan(lat1 / 2 + PI / 4));
     // E-W line gives dPhi=0
-    var q = (!isNaN(dLat / dPhi)) ? dLat / dPhi : Math.cos(lat1);
+    var q = (!isNaN(dLat / dPhi)) ? dLat / dPhi : cos(lat1);
     // if dLon over 180° take shorter rhumb across 180° meridian:
-    if (dLon > Math.PI) {
-      dLon = 2 * Math.PI - dLon;
-    }
-    var dist = Math.sqrt(dLat * dLat + q * q * dLon * dLon) * R;
+    if (dLon > PI) { dLon = 2 * PI - dLon; }
+    var dist = sqrt(dLat * dLat + q * q * dLon * dLon) * R;
 
     // 4 sig figs reflects typical 0.3% accuracy of spherical model
     return dist.toPrecisionFixed(4);

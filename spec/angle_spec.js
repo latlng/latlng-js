@@ -2,7 +2,8 @@
 /*global describe, it, beforeEach, expect, spyOn, Geo, LatLon */
 
 describe("Angle", function () {
-  var Angle = Geo.Angle;
+  var Angle = Geo.Angle,
+    deg = Angle.fromDegrees;
 
   describe("round", function () {
     it("should round the value to the number of decimal places requested",
@@ -69,13 +70,13 @@ describe("Angle", function () {
     beforeEach(function () {
       degrees = 51.477811111111;
       radians = degrees * Math.PI / 180;
-      angle = Angle.fromDegrees(degrees);
-      neg = Angle.fromDegrees(-degrees);
+      angle = deg(degrees);
+      neg = deg(-degrees);
     });
 
     describe("Constructor", function () {
       it("should create a angle with a given value in degrees", function () {
-        var angle = Angle.fromDegrees(10);
+        var angle = deg(10);
         expect(angle.r).toEqual(10 * Math.PI / 180);
       });
 
@@ -85,10 +86,10 @@ describe("Angle", function () {
       });
 
       it("should parse deg-min-sec", function () {
-        var deg = "40\u00b044\u203255\u2033",
-          angle = Angle.fromDegrees(deg);
+        degrees = "40\u00b044\u203255\u2033";
+        angle = deg(degrees);
         expect(angle.r).toEqual(0.7111974295036337);
-        expect(angle.toString()).toEqual(deg);
+        expect(angle.toString()).toEqual(degrees);
       });
     });
 

@@ -18,6 +18,7 @@ if (Geo === undefined) { Geo = {}; }
 
 (function () {
   var Angle = Geo.Angle,
+    rad = Angle.rad,
     sin = Math.sin,
     asin = Math.asin,
     cos = Math.cos,
@@ -118,8 +119,8 @@ if (Geo === undefined) { Geo = {}; }
 
     if (isNaN(this.lat) || isNaN(this.lon)) { return '-,-'; }
 
-    return Geo.toLat(this.lat, format, dp) + ', ' +
-        Geo.toLon(this.lon, format, dp);
+    return this.lat.toLat(format, dp) + ', ' +
+        this.lon.toLon(format, dp);
   };
 
   /**
@@ -162,8 +163,7 @@ if (Geo === undefined) { Geo = {}; }
   };
 
   LatLon.prototype.atBearingAndAngle = function (bearing, angle) {
-    var brng = ( typeof bearing === 'number' ) ? bearing : bearing.r,
-      theta = ( typeof angle === 'number' ) ? angle : angle.r,
+    var brng = rad(bearing), theta = rad(angle),
       lat = this.lat.r, lon = this.lon.r,
       clat = cos(lat), slat = sin(lat), st = sin(theta), ct = cos(theta),
       lat2 = asin(slat * ct + clat * st * cos(brng)),
@@ -213,6 +213,88 @@ if (Geo === undefined) { Geo = {}; }
     midLon = (midLon + 3 * PI) % PI2 - PI;
     return new LatLon(midLat, midLon);
   };
+
+  /**
+   * Returns the point of intersection of two paths defined by point and bearing
+   *
+   *   see http://williams.best.vwh.net/avform.htm#Intersection
+   *
+   * @param   {LatLon} p1 First point.
+   * @param   {Number} brng1 Initial bearing from first point.
+   * @param   {LatLon} p2 Second point.
+   * @param   {Number} brng2 Initial bearing from second point.
+   * @return {LatLon} Destination point
+   *                  (null if no unique intersection defined).
+
+  */
+  LatLon.intersection = function (p1, brng1, p2, brng2) {
+    var b1 = rad(brng1), b2 = rad(brng2),
+      lat1 = p1.lat.r, lon1 = p1.lon.r,
+      lat2 = p2.lat.r, lon2 = p2.lon.r,
+      dLat = lat2 - lat1, dLon = lon2 - lon1;
+
+    var dist12 = 2 * asin(
+      sqrt(sin(dLat / 2) * Math.sin(dLat / 2) +
+      cos(lat1) * cos(lat2) *
+      sin(dLon / 2) * sin(dLon / 2)));
+    if (dist12 === 0) {
+      return null;
+    }
+
+    // initial/final bearings between points
+    var brngA = Math.acos((Math.sin(lat2) - Math.sin(lat1) * Math.cos(dist12)) /
+      (Math.sin(dist12) * Math.cos(lat1)));
+    if (isNaN(brngA)) {
+      brngA = 0;  // protect against rounding
+    }
+    var brngB = Math.acos((Math.sin(lat1) - Math.sin(lat2) * Math.cos(dist12)) /
+      (Math.sin(dist12) * Math.cos(lat2)));
+
+    var brng12, brng21;
+    if (Math.sin(lon2 - lon1) > 0) {
+      brng12 = brngA;
+      brng21 = 2 * Math.PI - brngB;
+    } else {
+      brng12 = 2 * Math.PI - brngA;
+      brng21 = brngB;
+    }
+
+    // angle 2-1-3
+    var alpha1 = (b1 - brng12 + Math.PI) % (2 * Math.PI) - Math.PI;
+    // angle 1-2-3
+    var alpha2 = (brng21 - b2 + Math.PI) % (2 * Math.PI) - Math.PI;
+
+    // infinite intersections
+    if (Math.sin(alpha1) === 0 && Math.sin(alpha2) === 0) {
+      return null;
+    }
+    // ambiguous intersection
+    if (Math.sin(alpha1) * Math.sin(alpha2) < 0) {
+      return null;
+    }
+
+    //alpha1 = Math.abs(alpha1);
+    //alpha2 = Math.abs(alpha2);
+    // ... Ed Williams takes abs of alpha1/alpha2, but that seems to break
+    // calculation?
+
+    var alpha3 = Math.acos(-Math.cos(alpha1) * Math.cos(alpha2) +
+            Math.sin(alpha1) * Math.sin(alpha2) * Math.cos(dist12));
+    var dist13 = Math.atan2(
+            Math.sin(dist12) * Math.sin(alpha1) * Math.sin(alpha2),
+            Math.cos(alpha2) + Math.cos(alpha1) * Math.cos(alpha3));
+    var lat3 = Math.asin(Math.sin(lat1) * Math.cos(dist13) +
+            Math.cos(lat1) * Math.sin(dist13) * Math.cos(b1));
+    var dLon13 = Math.atan2(
+            Math.sin(b1) * Math.sin(dist13) * Math.cos(lat1),
+             Math.cos(dist13) - Math.sin(lat1) * Math.sin(lat3));
+    var lon3 = lon1 + dLon13;
+    // normalise to -180..+180º
+    lon3 = (lon3 + 3 * Math.PI) % (2 * Math.PI) - Math.PI;
+
+    return new LatLon(lat3.toDeg(), lon3.toDeg());
+  };
+
 
   Geo.LatLon = LatLon;
 

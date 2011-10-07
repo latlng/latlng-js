@@ -171,13 +171,29 @@ if (Geo === undefined) { Geo = {}; }
     }
   };
 
+  Angle.rad = function (arg) {
+    var rad, deg;
+    if (typeof arg === 'number') {
+      return arg;
+    } else if (typeof arg === 'string') {
+      return toRadians(parseDMS(arg));
+    } else if (typeof arg === 'object') {
+      if (arg instanceof Angle) {
+        return arg.r;
+      }
+    }
+    return NaN;
+  }
+
   Angle.prototype.radians = function () {
     return this.r;
   };
+  Angle.prototype.rad = Angle.prototype.radians;
 
   Angle.prototype.degrees = function () {
     return toDegrees(this.r);
   };
+  Angle.prototype.deg = Angle.prototype.degrees;
 
   Angle.prototype.valueOf = function () {
     return this.r;
