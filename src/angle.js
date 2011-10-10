@@ -5,23 +5,17 @@ if (Geo === undefined) { Geo = {}; }
 
 (function () {
   // dms format functions.
-  var formats;
+  var Angle = {}, formats, PI = Math.PI, PI2 = PI * 2, PIhalf = PI / 2;
 
   function round(value, dp) {
-    var x = Math.pow(10, dp);
-    return Math.round(value * x) / x;
+    return Number(value.toFixed(dp));
   }
 
-  function roundTo(value, x) {
-    if (x === undefined || x <= 0) { x = 1; }
-    return Math.round(value / x) * x;
+  function toDeg(radians) {
+    return round(radians * 180 / Math.PI, 12);
   }
 
-  function toDegrees(radians) {
-    return Math.round((radians * 180 / Math.PI) * 10e11) / 10e11;
-  }
-
-  function toRadians(degrees) {
+  function toRad(degrees) {
     return degrees * Math.PI / 180;
   }
 
@@ -73,6 +67,50 @@ if (Geo === undefined) { Geo = {}; }
     return deg;
   }
 
+  Angle.rad = function (arg) { // ensure radian units. 
+    if (typeof arg === 'number') {
+      return arg; // already a number, assume radians.
+    } else {
+      return toRad(parseDMS(arg)); // not a number, assume degrees in a string
+    }
+  };
+
+  Angle.deg = function (degrees) { // units are degrees, convert to radians
+    if (typeof degrees === 'string') { // convert degree string
+      degrees = parseDMS(degrees);
+    }
+    if (typeof degrees !== 'number') {
+      degrees = Number(degrees);
+    }
+    return toRad(degrees);
+  };
+
+
+  function toDMS(rad, style, dp, format) {
+    var a, b, deg = toDeg(rad);
+    // give up here if we can't make a number from deg
+    if (isNaN(deg)) { return 'NaN';  }
+    format = format || formats.dms;
+    // format is a callback
+    switch (style) {
+    case 'd':
+      if (dp === undefined) { dp = 4; }
+      b = round(deg, dp) % 360;
+      a = Math.abs(b);
+      return format(b < 0, dp, a);
+    case 'dm':
+      if (dp === undefined) { dp = 2; }
+      b = round(deg * 60, dp) % (60 * 360);
+      a = Math.abs(b);
+      return format(b < 0, dp, a / 60, a % 60);
+    default: // 'style'
+      if (dp === undefined) { dp = 0; }
+      b = round(deg * 3600, dp) % (3600 * 360);
+      a = Math.abs(b);
+      return format(b < 0, dp, a / 3600, a / 60 % 60, a % 60);
+    }
+  }
+
   formats = (function () { // formats callbacks for toDMS
     function dms(neg, dp, d, m, s) {
       var string;
@@ -100,131 +138,32 @@ if (Geo === undefined) { Geo = {}; }
     return { dms: dms, signed: signed, lat: lat, lon: lon };
   }());
 
-  function toDMS(deg, style, dp, format) {
-    var a, b;
-    // give up here if we can't make a number from deg
-    if (isNaN(deg)) { return 'NaN';  }
-    format = format || formats.dms;
-    // format is a callback
-    switch (style) {
-    case 'd':
-      if (dp === undefined) { dp = 4; }
-      b = round(deg, dp) % 360;
-      a = Math.abs(b);
-      return format(b < 0, dp, a);
-    case 'dm':
-      if (dp === undefined) { dp = 2; }
-      b = round(deg * 60, dp) % (60 * 360);
-      a = Math.abs(b);
-      return format(b < 0, dp, a / 60, a % 60);
-    default: // 'style'
-      if (dp === undefined) { dp = 0; }
-      b = round(deg * 3600, dp) % (3600 * 360);
-      a = Math.abs(b);
-      return format(b < 0, dp, a / 3600, a / 60 % 60, a % 60);
-    }
+  function toLat(rad, style, dp) { // normalize radians to -PI/2º..PI/2º
+    rad = Number(rad) % PI2;
+    if(rad > PI) { rad = PI - rad; }
+    if(rad < -PI) { rad = -(PI + rad); }
+    if(rad > PIhalf) { rad = -(rad - PIhalf) + PIhalf; }
+    if(rad < -PIhalf) { rad = -(rad + PIhalf) - PIhalf; }
+    return toDMS(rad, style, dp, formats.lat);
   }
 
-  function toLat(deg, style, dp) { // normalize degrees to -90º..90º
-    deg = Number(deg) % 360;
-    if(deg > 180) { deg = 180 - deg; }
-    if(deg < -180) { deg = -(180 + deg); }
-    if(deg > 90) { deg = -(deg - 90) + 90; }
-    if(deg < -90) { deg = -(deg + 90) - 90; }
-    return toDMS(deg, style, dp, formats.lat);
+  function toLon(rad, style, dp) { // normalize radians to -PIº..PIº
+    rad = Number(rad) % PI2;
+    if(rad > PI) { rad = rad - PI2; }
+    if(rad < -PI) { rad = rad + PI2; }
+    return toDMS(rad, style, dp, formats.lon);
   }
 
-  function toLon(deg, style, dp) { // normalize degrees to -180º..180º
-    deg = Number(deg) % 360;
-    if(deg > 180) { deg = deg - 360; }
-    if(deg < -180) { deg = deg + 360; }
-    return toDMS(deg, style, dp, formats.lon);
+  function toBrng(rad, style, dp) { // normalise radians to 0º..PI2º
+    rad = Number(rad) % PI2;
+    if (rad < 0) { rad = rad + PI2; }
+    return toDMS(rad, style, dp, formats.dms);
   }
-
-  function toBrng(deg, style, dp) { // normalise degrees to 0º..360º
-    deg = Number(deg) % 360;
-    if (deg < 0) { deg = deg + 360; }
-    return toDMS(deg, style, dp);
-  }
-
-  function Angle (radians) {
-    if (typeof radians === 'number') {
-      this.r = radians;
-    } else if (typeof radians === 'string') {
-      this.r = Number(radians);
-    } else {
-      this.r = NaN;
-    }
-  }
-
-  Angle.fromDegrees = function (degrees) {
-    if (typeof degrees === 'string') {
-      degrees = parseDMS(degrees);
-    }
-    if (typeof degrees !== 'number') {
-      degrees = Number(degrees);
-    }
-    if (isNaN(degrees)) {
-      return new Angle(NaN);
-    } else {
-      return new Angle(toRadians(degrees));
-    }
-  };
-
-  Angle.rad = function (arg) {
-    var rad, deg;
-    if (typeof arg === 'number') {
-      return arg;
-    } else if (typeof arg === 'string') {
-      return toRadians(parseDMS(arg));
-    } else if (typeof arg === 'object') {
-      if (arg instanceof Angle) {
-        return arg.r;
-      }
-    }
-    return NaN;
-  }
-
-  Angle.prototype.radians = function () {
-    return this.r;
-  };
-  Angle.prototype.rad = Angle.prototype.radians;
-
-  Angle.prototype.degrees = function () {
-    return toDegrees(this.r);
-  };
-  Angle.prototype.deg = Angle.prototype.degrees;
-
-  Angle.prototype.valueOf = function () {
-    return this.r;
-  };
-
-  Angle.prototype.toString = function () {
-    return toDMS(this.degrees());
-  };
-
-  Angle.prototype.toDMS = function (style, dp, format) {
-    return toDMS(this.degrees(), style, dp, format);
-  };
-
-  Angle.prototype.toLat = function (style, dp) {
-    return toLat(this.degrees(), style, dp);
-  };
-
-  Angle.prototype.toLon = function (style, dp) {
-    return toLon(this.degrees(), style, dp);
-  };
-
-  Angle.prototype.toBrng = function (style, dp) {
-    return toBrng(this.degrees(), style, dp);
-  };
-
 
   // make functions available as class methods.
   Angle.round = round;
-  Angle.roundTo = roundTo;
-  Angle.toDegrees = toDegrees;
-  Angle.toRadians = toRadians;
+  Angle.toDeg = toDeg;
+  Angle.toRad = toRad;
   Angle.parseDMS = parseDMS;
   Angle.toDMS = toDMS;
   Angle.toDMS.formats = formats;
@@ -235,7 +174,6 @@ if (Geo === undefined) { Geo = {}; }
   Angle.toLon.format = formats.lon;
   Angle.toBrng = toBrng;
   Angle.toBrng.format = formats.dms;
-  Angle.Angle  = Angle ;
   Geo.Angle = Angle;
 }());
 

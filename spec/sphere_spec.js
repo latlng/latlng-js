@@ -5,7 +5,8 @@ describe("Sphere", function () {
   var Sphere = Geo.Sphere,
     LatLon = Geo.LatLon,
     Angle = Geo.Angle,
-    deg = Angle.fromDegrees,
+    deg = Angle.deg,
+    toDeg = Angle.toDeg,
     degLatLon = LatLon.fromDegrees,
     sphere;
 
@@ -33,7 +34,7 @@ describe("Sphere", function () {
 
   describe("angleOf", function () {
     it("should return the angle of a distance", function () {
-      expect(sphere.angleOf(20).r).toEqual(2);
+      expect(sphere.angleOf(20)).toEqual(2);
     });
   });
 
@@ -59,8 +60,8 @@ describe("Sphere", function () {
         bearing = deg(90),
         distance = sphere.distanceOf(deg(90)),
         b = sphere.destinationPoint(a, bearing, distance);
-      expect(b.lat.deg()).toEqual(0);
-      expect(b.lon.deg()).toEqual(90);
+      expect(toDeg(b.lat)).toEqual(0);
+      expect(toDeg(b.lon)).toEqual(90);
     });
   });
 

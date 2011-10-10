@@ -19,6 +19,7 @@ if (Geo === undefined) { Geo = {}; }
 (function () {
   var Angle = Geo.Angle,
     rad = Angle.rad,
+    deg = Angle.deg,
     sin = Math.sin,
     asin = Math.asin,
     cos = Math.cos,
@@ -31,28 +32,16 @@ if (Geo === undefined) { Geo = {}; }
    * Creates a point on the earth's surface at the supplied latitude / longitude
    *
    * @constructor
-   * @param {Number} lat  latitude in numeric degrees.
-   * @param {Number} lon  longitude in numeric degrees.
-   * @param {Number=} rad radius of earth if different value is required
-   *                             from standard 6,371km.
+   * @param {Number} lat  latitude in radians.
+   * @param {Number} lon  longitude in radians.
   */
-
   function LatLon(lat, lon) {
-    // only accept numbers or valid numeric strings
-    if (typeof(lat) === 'number') {
-      this.lat = new Angle(lat);
-    } else if (lat instanceof Angle) {
-      this.lat = lat;
-    }
-    if (typeof(lon) === 'number') {
-      this.lon = new Angle(lon);
-    } else if (lon instanceof Angle) {
-      this.lon = lon;
-    }
+    this.lat = lat;
+    this.lon = lon;
   }
 
   LatLon.fromDegrees = function(lat, lon) {
-    return new LatLon(Angle.fromDegrees(lat), Angle.fromDegrees(lon));
+    return new LatLon(deg(lat), deg(lon));
   };
 
   /*
@@ -134,13 +123,13 @@ if (Geo === undefined) { Geo = {}; }
    * @return {Angle} angle between this point and destination point.
   */
   LatLon.prototype.angleTo = function (b) {
-    var lat = this.lat.r,
-      bLat = b.lat.r,
+    var lat = this.lat,
+      bLat = b.lat,
       sLat = sin((bLat - lat) / 2),
-      sLon = sin((b.lon.r - this.lon.r) / 2),
+      sLon = sin((b.lon - this.lon) / 2),
       theta = sLat * sLat + cos(lat) * cos(bLat) * sLon * sLon,
       radians = 2 * atan2(sqrt(theta), sqrt(1 - theta));
-    return new Angle(radians);
+    return radians;
   };
 
   /**
@@ -152,19 +141,19 @@ if (Geo === undefined) { Geo = {}; }
 
   */
   LatLon.prototype.bearingTo = function (dest) {
-    var lat = this.lat.r, destLat = dest.lat.r,
-      dLon = dest.lon.r - this.lon.r,
+    var lat = this.lat, destLat = dest.lat,
+      dLon = dest.lon - this.lon,
       cosDestLat = cos(destLat),
       x = cos(lat) * sin(destLat) - sin(lat) * cosDestLat * cos(dLon),
       y = sin(dLon) * cosDestLat,
       brng = atan2(y, x) % ( PI2 );
     if (brng < 0) { brng = brng + PI2; }
-    return new Angle(brng);
+    return brng;
   };
 
   LatLon.prototype.atBearingAndAngle = function (bearing, angle) {
     var brng = rad(bearing), theta = rad(angle),
-      lat = this.lat.r, lon = this.lon.r,
+      lat = this.lat, lon = this.lon,
       clat = cos(lat), slat = sin(lat), st = sin(theta), ct = cos(theta),
       lat2 = asin(slat * ct + clat * st * cos(brng)),
       lon2 = lon + atan2(sin(brng) * st * clat, ct - slat * sin(lat2));
@@ -182,12 +171,12 @@ if (Geo === undefined) { Geo = {}; }
    * @return {Number} Final bearing from North.
   */
   LatLon.prototype.finalBearingTo = function (dest) {
-    var destLat = dest.lat.r, lat = this.lat.r,
-      dLon = this.lon.r - dest.lon.r,
+    var destLat = dest.lat, lat = this.lat,
+      dLon = this.lon - dest.lon,
       y = sin(dLon) * cos(lat),
       x = cos(destLat) * sin(lat) - sin(destLat) * cos(lat) * cos(dLon),
       brng = (atan2(y, x) + PI) % 360;
-    return new Angle(brng);
+    return brng;
   };
 
   /**
@@ -199,9 +188,9 @@ if (Geo === undefined) { Geo = {}; }
 
   */
   LatLon.prototype.midpointTo = function (dest) {
-    var lat = this.lat.r, lon = this.lon.r,
-      destLat = dest.lat.r,
-      dLon = dest.lon.r - lon,
+    var lat = this.lat, lon = this.lon,
+      destLat = dest.lat,
+      dLon = dest.lon - lon,
       Bx = cos(destLat) * cos(dLon),
       By = cos(destLat) * sin(dLon),
       cLat = cos(lat),
@@ -229,8 +218,8 @@ if (Geo === undefined) { Geo = {}; }
   */
   LatLon.intersection = function (p1, brng1, p2, brng2) {
     var b1 = rad(brng1), b2 = rad(brng2),
-      lat1 = p1.lat.r, lon1 = p1.lon.r,
-      lat2 = p2.lat.r, lon2 = p2.lon.r,
+      lat1 = p1.lat, lon1 = p1.lon,
+      lat2 = p2.lat, lon2 = p2.lon,
       dLat = lat2 - lat1, dLon = lon2 - lon1;
 
     var dist12 = 2 * asin(

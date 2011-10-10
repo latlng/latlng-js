@@ -30,15 +30,11 @@
   };
 
   Sphere.prototype.angleOf = function (distance) {
-    return new Angle(distance / this.radius);
+    return distance / this.radius;
   };
 
   Sphere.prototype.distanceOf = function (angle) {
-    if (typeof angle === 'number') {
-      return angle * this.radius;
-    } else {
-      return angle.r * this.radius;
-    }
+    return angle * this.radius;
   };
 
   /**
@@ -68,7 +64,6 @@
   */
   Sphere.prototype.destinationPoint = function (a, bearing, distance) {
     var angle = this.angleOf(distance);
-    console.log(a, bearing, distance, angle);
     return a.atBearingAndAngle(bearing, angle);
   };
 
@@ -87,9 +82,9 @@
   */
   Sphere.prototype.rhumbDistanceBetween = function (a, b) {
     var R = this.radius;
-    var lat1 = a.lat.r, lat2 = b.lat.r;
-    var dLat = b.lat.r - a.lat.r;
-    var dLon = abs(b.lon.r - a.lon.r);
+    var lat1 = a.lat, lat2 = b.lat;
+    var dLat = b.lat - a.lat;
+    var dLon = abs(b.lon - a.lon);
     var dPhi = log( tan(lat2 / 2 + PI / 4) / tan(lat1 / 2 + PI / 4));
     // E-W line gives dPhi=0
     var q = (!isNaN(dLat / dPhi)) ? dLat / dPhi : cos(lat1);
