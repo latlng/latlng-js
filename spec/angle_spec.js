@@ -2,7 +2,7 @@
 /*global describe, it, beforeEach, expect, spyOn, Geo, LatLon */
 
 describe("Angle", function () {
-  var angle, degrees, radians, neg,
+  var angle, degrees, radians,
     Angle = Geo.Angle,
     toDeg = Angle.toDeg,
     toRad = Angle.toRad,
@@ -15,12 +15,10 @@ describe("Angle", function () {
     toLon = Angle.toLon,
     toBrng = Angle.toBrng;
 
-
   beforeEach(function () {
     degrees = 51.477811111111;
     radians = degrees * Math.PI / 180;
     angle = toRad(degrees);
-    neg = toRad(-degrees);
   });
 
   describe("round", function () {
